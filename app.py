@@ -14,8 +14,7 @@ from tqdm import tqdm
 
 # 1. PATH TO SCAN
 # Replace the path below with the folder containing your images.
-# Example: r"C:\Users\John\Pictures\WhatsApp Images"
-INPUT_FOLDER_PATH = r"C:\Path\To\Your\Images"
+INPUT_FOLDER_PATH = r"D:\OCR2Metadata\newimagesfortesting"
 
 # 2. SEARCH TARGETS
 # The bike number or keywords you are looking for
@@ -32,7 +31,7 @@ WATCHLIST = [
 
 # 3. SETTINGS
 # Set to True if you want to re-scan images that already have metadata
-FORCE_REPROCESS = False
+FORCE_REPROCESS = True
 
 # ==========================================
 #      END CONFIGURATION (DO NOT EDIT)
@@ -50,7 +49,7 @@ BASE_DIR = os.getcwd()
 FOUND_FOLDER = os.path.join(BASE_DIR, "Found_Documents")
 
 # Initialize OCR Engine
-# Using specific flags for stability on Windows
+# show_log=False keeps the console clean so you only see YOUR text
 ocr = PaddleOCR(lang="en", use_angle_cls=True, enable_mkldnn=False, show_log=False)
 
 
@@ -106,9 +105,19 @@ def process_images():
             # 1. OCR
             result = ocr.ocr(img_path)
             if not result or not result[0]:
+                # If no text found, let the user know
+                tqdm.write(f"[{file_name}] <No text detected>")
                 continue
 
             extracted_text = " ".join([line[1][0] for line in result[0]])
+
+            # --- NEW FEATURE: PRINT PREVIEW ---
+            # Grab first 10 words
+            preview = " ".join(extracted_text.split()[:10])
+            # tqdm.write prints ABOVE the progress bar safely
+            tqdm.write(f"[{file_name}] {preview}...")
+            # ----------------------------------
+
             clean_text = extracted_text.lower()
 
             # 2. SEARCH
@@ -123,6 +132,7 @@ def process_images():
 
             if is_match:
                 shutil.copy(img_path, os.path.join(FOUND_FOLDER, f"MATCH_{file_name}"))
+                tqdm.write(f"   >>> MATCH FOUND! Saved to Found_Documents")
 
             # 3. WRITE METADATA
             temp_path = img_path + ".tmp"
