@@ -15,3 +15,6 @@ WhatsApp_Images/
 # Temporary files created by the script
 *.tmp
 *.log
+
+# Project documentation (local)
+context.md
